@@ -12,18 +12,24 @@ read TIMEZONE
 timedatectl set-timezone $TIMEZONE
 
 # Create a new user and replace "ubuntu"
-echo "Enter the main username (leave blank to leave it 'ubuntu')"
+echo "Enter the main username (press enter to skip)"
 read NEWUSER 
-[ -z "$NEWUSER" ] || adduser $NEWUSER && usermod -aG sudo,admin $NEWUSER && userdel -rf 'ubuntu'
+if [[ -n "$NEWUSER" ]]; then
+    adduser $NEWUSER && usermod -aG sudo,admin $NEWUSER 
+    if [[ "$USER" == "ubuntu" ]]; then
+        echo "Removing 'ubuntu' user"
+        userdel -rf 'ubuntu'
+    fi
+fi
 
 # Update and upgrade
-#echo "Updating and upgrading"
-#apt update -y
-#apt upgrade -y
+echo "Updating and upgrading"
+apt remove unattended-upgrades
+apt update -y && apt upgrade -y
 
 # Setup the firewall
 echo "Setting up the firewall"
-FWSERVICES=('OpenSSH')
+FWSERVICES=('OpenSSH' 'https')
 for i in "${FWSERVICES[@]}"; do
     ufw allow $i
 done
@@ -32,7 +38,7 @@ ufw enable
 # Setup the networking
 echo "Setting up the networking"
 echo "Removing 'cloud-init'"
-cp /etc/cloud/cloud.cfg.d/90_dpkg.cfg /etc/cloud/cloud.cfg.d/90_dpkg.cfg.bak && echo 'datasource_list: [ None ]' | sudo -s tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg && apt purge cloud-init - y && rm -rf /etc/cloud/ & rm -rf /var/lib/cloud/
+cp /etc/cloud/cloud.cfg.d/90_dpkg.cfg /etc/cloud/cloud.cfg.d/90_dpkg.cfg.bak && echo 'datasource_list: [ None ]' | sudo -s tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg && apt purge cloud-init -y && rm -rf /etc/cloud/ & rm -rf /var/lib/cloud/
 
 echo "Installing required packages"
 NETPACKAGES=('net-tools' 'network-manager' 'network-manager-openvpn' 'netfilter-persistent' 'iptables-persistent')
