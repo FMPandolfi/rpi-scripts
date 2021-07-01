@@ -17,9 +17,9 @@ read NEWUSER
 [ -z "$NEWUSER" ] || adduser $NEWUSER && usermod -aG sudo,admin $NEWUSER && userdel -rf 'ubuntu'
 
 # Update and upgrade
-echo "Updating and upgrading"
-apt update -y
-apt upgrade -y
+#echo "Updating and upgrading"
+#apt update -y
+#apt upgrade -y
 
 # Setup the firewall
 echo "Setting up the firewall"
